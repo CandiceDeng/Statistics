@@ -1,0 +1,60 @@
+---
+title: "HW5"
+author: "Nan Deng"
+date: "3/11/2018"
+output: word_document
+---
+
+#### HW#5, Nan Deng
+####(a)
+```{r, echo=TRUE}
+library(faraway)
+data(pipeline)
+pipeline_fit <- lm(Lab ~ Field, data=pipeline)
+plot(fitted(pipeline_fit),resid(pipeline_fit), xlab="Fitted", ylab="Residuals",pch=16)
+```
+According to the residual distribution against y, it shows Heteroscedasticity (non-constant variance). Although the variance keeps concentrated at the head, it starts to become seperate when x gets greater. 
+####(b)
+```{r, echo=TRUE}
+i <- order(pipeline$Field)
+npipe <- pipeline[i,]
+ff <- gl(12,9)[-108]
+meanfield <- unlist(lapply(split(npipe$Field,ff),mean))
+varlab <- unlist(lapply(split(npipe$Lab,ff),var))
+log_fit <- lm(I(log(varlab)) ~ I(log(meanfield)), data=data.frame(varlab,meanfield)[-length(varlab),])
+summary(log_fit)
+a0 <- exp(log_fit$coefficients[1])
+a1 <- log_fit$coefficients[2]
+paste("a0=",a0)
+paste("a1=",a1)
+```
+
+####(c)
+```{r, echo=TRUE}
+pipeline$w <- pipeline$Field^(-a1)/a0
+pipeline_fit_1 <- lm(Lab ~ Field,weights=pipeline$w,data=pipeline)
+plot(pipeline$Field, pipeline$Lab, pch=16)
+abline(pipeline_fit)
+abline(pipeline_fit_1,lty=4)
+legend(5,80,legend=c('weighted','unweighted'),lty=c(2,1))
+```
+####(d)
+```{r, echo=TRUE}
+sum_ei <- sum(resid(pipeline_fit_1))
+sum_wiei <- sum(resid(pipeline_fit_1)*pipeline$wi)
+sum_ei
+sum_wiei
+```
+The residuals do not sum to zero, while the sum of wiei does. Considering the model pipeline_fit_1 is impacted by the weight, the true ei of this model should also incorporate wi, which is wiei.
+####(e)
+```{r, echo=TRUE}
+pipeline_fit_2 = lm(Lab ~ 1, weight = w, data=pipeline)
+anova(pipeline_fit_2,pipeline_fit_1)
+y_bar <- coef(pipeline_fit_2)
+y_bar
+SSR <- sum(pipeline$w*(fitted(pipeline_fit_1)-y_bar)^2)
+SSR
+SST <- sum(pipeline$w*(pipeline$Lab-y_bar)^2)
+SST
+```
+Since 1288.19(SST)=1186.407(SSR)+101.79(SSR), SST is equal to the sumation of SSE and SSR. 

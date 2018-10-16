@@ -1,0 +1,48 @@
+---
+title: "HW9"
+author: "Nan Deng"
+date: "4/1/2018"
+output: word_document
+---
+
+#### HW#5, Nan Deng
+####(1)
+####(a)
+```{r,echo=TRUE}
+y <- c(0,14,29,42,67,73)
+n <- rep(75,6)
+x <- c(-0.553,-0.113,0.059,0.185,0.446,0.753)
+slogit <- log((y+0.5)/(n-y+0.5))
+plot(x,slogit)
+ymat <- cbind(y,n-y)
+m1 <- glm(ymat~x,family=binomial)
+summary(m1)
+fitted.values(m1)
+```
+The Residual deviance is 2.4458  on 4  degrees of freedom.
+####(b)
+```{r,echo=TRUE}
+phat <- fitted.values(m1)
+nmat <- matrix(0,nrow=2,ncol=1000) 
+for(i in 1:1000) {
+  ynew <- rbinom(6,n,phat)
+  ymatnew <- cbind(ynew,n-ynew)
+  m2 <- glm(ymatnew~x,family=binomial)
+  nmat[,i] <- m2$coef
+}
+LD50samp <- -nmat[1,]/nmat[2,] 
+hist(LD50samp)
+mean(LD50samp)
+sd(LD50samp)
+```
+The mean of LD50 through using bootstrap is 0.1346918, while the corresponding standard error is 0.02056164.
+####(c)
+The mean of α estimated by WinBUGS is -0.887, and the standard error is 0.1566. The mean of β estimated by WinBUGS is 6.555, and the standard error is 0.6446. The result is quite similar to that calculated by bootstrap.
+####(d)
+The mean and standard deviation of LD50 estimated by WinBUGS are 0.1354 and 0.02048 respectively, which is similar to that calculated in part b).
+####(e)
+```{r,echo=TRUE}
+vec <- c(-1/m1$coef[2],m1$coef[1]/m1$coef[2]^2)
+sqrt(vec %*% vcov(m1) %*% vec)
+```
+The standard error estimated by Delta Method is 0.02061732. The result got through these three methods are all similar.

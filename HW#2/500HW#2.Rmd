@@ -1,0 +1,63 @@
+---
+title: "HW#2"
+author: "Nan Deng"
+date: "1/18/2018"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+###HW#2, Nan Deng
+
+####(1)
+```{r, echo=TRUE}
+library(MASS)
+mu <- c(3,4)
+sigma <- matrix(c(1.0,0.8,0.8,1.0),nrow=2)
+set.seed(123)
+datam <- data.frame(mvrnorm(100,mu,sigma))
+colnames(datam) <- c("x","y")
+```
+####(a)
+```{r, echo=TRUE}
+library(faraway)
+fit_line <- lm(y ~ x,data=datam)
+summary(fit_line)
+plot(datam$x,datam$y,xlab="x",ylab="y",xlim=c(0,7),ylim=c(0,7))
+abline(fit_line)
+coefficients(fit_line)
+summary(fit_line)$sigma
+summary(fit_line)$r.squared
+```
+α=1.6969772; β=0.7547914; σ=0.5701041; R-square=0.606287
+####(c)
+```{r, echo=TRUE}
+t.test(datam, mu=0, alternative="greater", conf.level=0.95)
+```
+
+####(d)
+```{r, echo=TRUE}
+fit_line1 <- lm(y ~ offset(0.9*x),data=datam)
+anova(fit_line,fit_line1)
+```
+####(2)
+```{r, echo=TRUE}
+m0 <- lm(y ~ x -1 , data=datam) 
+summary(m0)
+```
+####(a)
+```{r, echo=TRUE}
+plot(datam$x,datam$y,xlab="x",ylab="y",xlim=c(0,7),ylim=c(0,7))
+abline(m0,lty=2)
+```
+####(b)
+```{r, echo=TRUE}
+sum(summary(m0)$resid)
+```
+####(c)
+```{r, echo=TRUE}
+sum(datam$x * residuals(m0))
+sum(fitted.values(m0) * residuals(m0))
+```
+####(3)
+

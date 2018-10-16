@@ -1,0 +1,49 @@
+---
+title: "HW7"
+author: "Nan Deng"
+date: "3/19/2018"
+output: word_document
+---
+
+###1
+####(a)
+```{r, echo=TRUE}
+icu_data <- read.csv("/Users/CandiceDeng\ 1/Desktop/STATS500/HW#7/icu.csv")
+icu_data$race <- factor(icu_data$race)
+head(icu_data,5)
+icu_fit <- glm(sta~.,family=binomial,data=icu_data)
+icu_fit
+icu_reduce1 <- glm(sta~age+can+race,family=binomial,data=icu_data)
+anova(icu_reduce1,icu_fit)
+1-pchisq(12.845,2)
+beta <- coef(icu_fit)[4:5]
+varb <- vcov(icu_fit)[4:5,4:5]
+varbi <- solve(varb)
+w <- t(beta) %*% varbi %*% beta
+paste('w =',w)
+paste('p-value = ',1-pchisq(w,2))
+```
+For the likelihood ratio test, the chi-square test statistics is 12.845 with 2 degree of freedom. The null hypothesis should be rejected because p-value is 0.00162459 which is less than 0.05. For wald test, on the other hand, the test statistic is 12.3727100895835 with 2 degree of freedom. The null hypothesis should also be rejected because p-value is 0.00205731191322589 which is less than 0.05.
+####(b)
+```{r, echo=TRUE}
+library(aod)
+x <- model.matrix(icu_fit)[,-1]
+new_icu <- data.frame(sta=icu_fit$y,x)
+icu_reduce2 <- glm(sta~age+can+cpr+inf+I(race2+race3), family=binomial,data=new_icu)
+anova(icu_reduce2,icu_fit)
+1-pchisq(0.96205, 1)
+wald.test(b=coef(icu_fit),Sigma=vcov(icu_fit),L=cbind(0,0,0,0,0,1,-1))
+```
+For the likelihood ratio test, the chi-square test statistics is 0.96205 with 1 degree of freedom. The null hypothesis should not be rejected because p-value is 0.3266709 which is greater than 0.05. For wald test, on the other hand, the test statistic is 0.95 with 2 degree of freedom. The null hypothesis should also not be rejected because p-value is 0.33 which is greater than 0.05.
+####(c)
+```{r, echo=TRUE}
+beta <- summary(icu_fit)$coef
+mean <- as.numeric(beta[6] - beta[7])
+amatrix <- vcov(icu_fit)[6:7, 6:7]
+var_beta <- amatrix[1, 1]+amatrix[2, 2]-2*amatrix[1, 2]
+std <- sqrt(var_beta)
+paste('95% CI = ', paste(mean-qnorm(0.975,0,1)*std,mean+qnorm(0.975,0,1)*std))
+```
+The 95% confidence interval for βrace2-βrace3 is to detect how the response sta varies between predictors race2 and race3 while holding other predictors constant. 
+####(d)
+For the binary response model, unlike the usual form 2[l(βS)-l(βΩ)], the likelihood under a saturated model is not feaible and the Residual Deviance is computed as -2l(βΩ). Under this circumstance, the Residual Deviance does not follow chi-squared distribution. Therefore, this Residual Deviance cannot be appropriately considered as the sum of the squared deviance residuals, which means it should not be used as a Goodness-of-Fit statistic for this model.

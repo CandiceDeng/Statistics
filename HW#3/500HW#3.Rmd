@@ -1,0 +1,87 @@
+---
+title: "500HW3"
+author: "Nan Deng"
+date: "1/25/2018"
+output: word_document
+---
+
+#### HW#3, Nan Deng
+####(1)
+```{r, echo=TRUE}
+library(MASS)
+mu <- c(3,4)
+sigma <- matrix(c(1.0,0.8,0.8,1.0),nrow=2)
+set.seed(123)
+datam <- data.frame(mvrnorm(100,mu,sigma))
+colnames(datam) <- c("x","y")
+```
+####(a)
+```{r, echo=TRUE}
+library(faraway)
+fit_line1 <- lm(y ~ x,data=datam)
+plot(datam$x,datam$y,xlab="x",ylab="y",xlim=c(0,7),ylim=c(0,7))
+fit_line2 <- lm(x ~ y,data=datam)
+plot(datam$x,datam$y,xlab="x",ylab="y",xlim=c(0,7),ylim=c(0,7))
+abline(fit_line1)
+newy <- c(-10,10)
+newx <- fit_line2$coefficients[1]+fit_line2$coefficients[2]*newy
+lines(newx,newy,lty=2)
+```
+####(b)
+```{r, echo=TRUE}
+summary(fit_line1)
+summary(fit_line2)
+```
+The R2, p-value and F-statistics remain the same in these two models.
+####(c) 
+####(d)
+####(e)
+```{r, echo=TRUE}
+for (i in 1:5) {
+    yi_hat <- fit_line1$fitted.values[i]
+    xi <- datam[i,1]
+    left <- (yi_hat-mean(datam[,2]))/sd(datam[,2])
+    right <- cor(x=datam)[1,2]*(xi-mean(datam[,1]))/sd(datam[,1])
+    print(cat(paste("i=",i),paste("Left=",left),paste("Right=",right)))
+}
+```
+####(2)
+####(a)
+```{r, echo=TRUE}
+college <- read.csv("/Users/CandiceDeng\ 1/Desktop/STATS500/HW#3/college.csv")
+plot(cbind(college[1:2],college[4:6]))
+```
+####(b)
+```{r, echo=TRUE}
+line_overall <- lm(college$gradrat ~ college$csat+college$private+college$stufac+college$rmbrd+college$act, data=college)
+line_b <- lm(college$gradrat ~ college$csat+college$act, data=college)
+anova(line_overall,line_b)
+```
+The p-value 0.342 is greater than 0.05, so the hypothesis cannot be rejected.
+####(c)
+```{r, echo=TRUE}
+line_c <- lm(college$gradrat ~ offset(0.05*college$csat)+college$private+college$stufac+college$rmbrd+college$act, data=college)
+anova(line_overall,line_c)
+```
+The p-value 0.427 is greater than 0.05, so the hypothesis cannot be rejected.
+####(d)
+```{r, echo=TRUE}
+line_d <- lm(college$gradrat ~ college$csat+college$private+college$stufac, data=college)
+anova(line_overall, line_d)
+```
+The p-value 5.018e-15 is less than 0.05, so the hypothesis should be rejected.
+####(e)
+```{r, echo=TRUE}
+line_e <- lm(college$gradrat ~ I(college$act+college$rmbrd)+college$private+college$stufac+college$csat, data=college)
+anova(line_overall, line_e)
+```
+The p-value around 0.006 is less than 0.05, so the hypothesis should be rejected.
+####(3)
+```{r, echo=TRUE}
+x_linear <- c(1,0,-1)
+y_linear <- c(1,0,2)
+fit <- lm(y_linear ~ x_linear+I(3*(x_linear*x_linear)-2))
+fit$coefficients
+fit2 <- lm(y_linear ~ x_linear)
+fit2$coefficients
+```

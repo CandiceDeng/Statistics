@@ -1,0 +1,62 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
+### HW#10, Nan Deng
+
+####1)
+####a)
+```{r, echo=TRUE}
+library(faraway)
+data(fat)
+index <- seq(10, 250, by=10)
+train <- fat[-index, -c(1,3,8)]
+test <- fat[index, -c(1,3,8)]
+rmse <- function(x,y) sqrt(mean((x-y)^2))
+fat_fit <- lm(siri ~ ., data=train)
+#summary(fat_fit)
+rmse(fat_fit$fitted.values, train$siri)
+rmse(predict(fat_fit, test), test$siri)
+```
+####b)
+```{r,echo=TRUE}
+fat_aic <- step(fat_fit,k=2)
+# summary(fat_aic)
+rmse(fat_aic$fitted.values, train$siri)
+rmse(predict(fat_aic, test), test$siri)
+```
+####c)
+```{r,echo=TRUE}
+library(pls)
+set.seed(123)
+fat_pcr <- pcr(siri ~ .,data=train,comp=14,validation="CV",segments=10)
+rmseCV <- RMSEP(fat_pcr, estimate = "CV", intercept = F)
+which.min(rmseCV$val)
+rmse(fat_pcr$fitted.values[, , 13], train$siri)
+yfit <- predict(fat_pcr, newdata = test, ncomp = 13)
+rmse(yfit, test$siri)
+```
+####d)
+```{r,echo=TRUE}
+set.seed(123)
+fat_pls <- plsr(siri ~ .,data=train,comp=14,validation="CV",segments=10)
+rmseCV <- RMSEP(fat_pls, estimate = "CV", intercept = F)
+which.min(rmseCV$val)
+rmse(fat_pls$fitted.values[, , 4], train$siri)
+yfit <- predict(fat_pls, newdata = test, ncomp = 4)
+rmse(yfit, test$siri)
+```
+####e)
+```{r,echo=TRUE}
+library(MASS)
+fat_ridge <- lm.ridge(siri ~ .,lambda=seq(0, 1.2, 0.1),data=train)
+select(fat_ridge)
+which.min(fat_ridge$GCV)
+yfit <- fat_ridge$ym + scale(train[, -1], center = fat_ridge$xm, scale = fat_ridge$scales) %*% fat_ridge$coef[, 12]
+rmse(yfit, train$siri)
+ypred <- fat_ridge$ym + scale(test[, -1], center = fat_ridge$xm, scale = fat_ridge$scales) %*% fat_ridge$coef[, 12]
+rmse(ypred, test$siri)
+```
+something
+

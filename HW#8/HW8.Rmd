@@ -1,0 +1,96 @@
+---
+title: "HW8"
+author: "Nan Deng"
+date: "3/25/2018"
+output: word_document
+---
+#### HW#5, Nan Deng
+####(1)
+####(a)
+```{r, echo=TRUE}
+ymat <- matrix(c(13,61,55,129,489,570,475,431,293,154,38,12),ncol=2,nrow=6,byrow=T)
+slogit <- log((ymat[,1]+0.5)/(ymat[,2]+0.5))
+x <- c(1, 2, 3, 4, 5, 6)
+plot(x,slogit)
+```
+####(b)
+```{r, echo=TRUE}
+cancer_fit <- glm(ymat~x,family=binomial)
+summary(cancer_fit)
+paste('p-value of Chi-square test = ',pchisq(7.4797,4,lower.tail=F))
+#qchisq(0.95,4)
+ei <- residuals(cancer_fit,type="pearson")
+chi_square <- sum(ei^2)
+paste('X2 = ',chi_square)
+paste('p-value of Pearson = ',pchisq(chi_square,4,lower.tail=F))
+```
+The Residual Deviance of this model is 7.4797 with 4 degree of freedom. For the Chi-square test, the p-value is 0.1126078, which is greater than 0.05, so this model fits the data well. On the other hand, the Pearson chi-squared statistic X2 is 7.362056, while the corresponding p-value is 0.1179481. Similarly, the hypothesis that the model fits well fails to be rejected.
+####(c)
+```{r, echo=TRUE}
+cancer_base_fit <- glm(ymat~1,family=binomial)
+anova(cancer_base_fit,cancer_fit)
+paste('p-value of Likelihood Ratio Test = ',pchisq(123.42,1,lower.tail=F))
+#qchisq(0.95,1)
+varb <- vcov(cancer_fit)[-1,-1]
+varbi <- solve(varb)
+beta <- coef(cancer_fit)[-1]
+w <- t(beta) %*% varbi %*% beta
+paste('w =',w)
+paste('p-value of Wald Test = ',pchisq(w,4,lower.tail=F))
+```
+Based on the analysis, the deviance of Likelihood Ratio Test is 123.42 with 1 degree of freedom. According to the p-value 1.12845581968394e-28, which if far less than 0.05, the null hypothesis should be rejected. For the Wald Test, the statistic is 115.152964000646 with 1 degree of freedom. The corresponding p-value is 5.78861765735426e-24 and should also be rejected due to less than 0.05.
+####(d)
+```{r, echo=TRUE}
+exp(beta)
+paste('Confidence interval for the odds ratio = ',paste(exp(beta-1.96*sqrt(vcov(cancer_fit)[2,2])),exp(beta+1.96*sqrt(vcov(cancer_fit)[2,2]))))
+```
+For a unit increase in x (a one-level increase in daily average number of cigarettes), the estimated odds ratio of lung cancer is 1.562519, while the 95% confidence interval for the odds ratio is (1.44020150546514, 1.69522550535127).
+####(e)
+```{r, echo=TRUE}
+exp(beta*2)
+paste('Confidence interval for the odds ratio = ',paste(exp(beta*2-1.96*2*sqrt(vcov(cancer_fit)[2,2])),exp(beta*2+1.96*2*sqrt(vcov(cancer_fit)[2,2]))))
+```
+For a 2-unit increase in x (a one-level increase in daily average number of cigarettes), the estimated odds ratio of lung cancer is 2.441466, while the 95% confidence interval for the odds ratio is (2.07418037634406, 2.87378951399348).
+####(2)
+####(a)
+```{r, echo=TRUE}
+acc <- c(188,107,63,23,241,92,61,19,200,118,22,19,21,13,11,1,31,11,5,0,26,17,2,6)
+trav <- c(204433874,177250749,41949294,29883757,128647023,59822202,17642351,6838521,31765363,59730974,1289058,3775431,23163210,21162524,9473358,3474259,15040022,5529527,2400560,459525,3207263,4951688,224036,340844)
+truck <- gl(2,12)
+road <- gl(3,4,length=24)
+time <- gl(2,2,length=24)
+area <- gl(2,1,length=24)
+logtrav <- log(trav)
+dataf <- data.frame(truck=truck,road=road,time=time,area=area,acc=acc,trav=trav,logtrav=logtrav)
+m1 <- glm(acc ~ truck + road + time + area + road*time + road*area,family=poisson, offset=logtrav, data=dataf)
+summary(m1)
+```
+####(b)
+```{r, echo=TRUE}
+acc[acc == 0] <- 0.5
+obsrate <- acc/trav
+mu <- obsrate
+eta <- log(mu)
+z <- eta
+w <- acc
+w[w == 0] <- 0.5
+for (i in 1:5) {
+  fit_model <- lm(z~truck+road+time+area+road*time+road*area,weights=w,data=dataf)
+  eta <- fitted.values(fit_model)
+  mu <- exp(eta)
+  z <- eta+(obsrate-mu)/mu
+  w <- trav*mu
+}
+coef(fit_model)
+```
+```{r, echo=TRUE}
+coef(m1)
+```
+```{r, echo=TRUE}
+varbeta <- summary(fit_model)$cov.unscaled
+sqrt(diag(varbeta))
+```
+```{r, echo=TRUE}
+sqrt(diag(vcov(m1)))
+```
+The result shown in part b is quite similar to those from part a, which uses Fisher scoring algorithm.

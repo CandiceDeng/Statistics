@@ -1,0 +1,70 @@
+---
+title: "500HW#4"
+author: "Nan Deng"
+date: "2/1/2018"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+#### HW#3, Nan Deng
+####(1)
+```{r, echo=TRUE}
+college <- read.csv("/Users/CandiceDeng\ 1/Desktop/STATS500/HW#3/college.csv")
+line_overall <- lm(college$gradrat ~ college$csat+college$private+college$stufac+college$rmbrd+college$act, data=college)
+library(car)
+```
+####(a)
+```{r, echo=TRUE}
+matrix_a <- cbind(rbind(0,0,0),rbind(0,0,0),diag(3),rbind(0,0,0))
+lht(line_overall,matrix_a)
+#line_a <- lm(college$gradrat ~ college$csat+college$act, data=college)
+#anova(line_overall,line_a)
+```
+The p-value is 0.342 which is greater than 0.05, the hypothesis should not be rejected.
+####(b)
+```{r, echo=TRUE}
+matrix_b <- cbind(0,0,0,0,1,-1)
+lht(line_overall,matrix_b)
+#line_b <- lm(college$gradrat ~ college$csat+college$private+college$stufac+I(college$rmbrd+college$act), data=college)
+#anova(line_overall,line_b)
+```
+The p-value is around 0.006061 which is less than 0.05, the hypothesis should be rejected.
+####(2)
+####(a)
+```{r, echo=TRUE}
+library(faraway)
+data(prostate)
+attach(prostate)
+line_2a <- lm(lpsa~lcavol+lweight+age+lbph+svi+lcp+gleason+pgg45)
+summary(line_2a)
+qt(0.975,88)
+qt(0.95,88)
+confint(line_2a,"age",level=0.95)
+confint(line_2a,"age",level=0.90)
+```
+95% CI for βage = –0.019637 ± 1.98729 × 0.011173 = (–0.041841, 0.002567)
+90% CI for βage = –0.019637 ± 1.662354 × 0.011173 = (–0.038210, –0.001064)
+For Hypothesis Analysis, 95% CI for βage does pass the 0 point while 90% CI for βage does not, H0 should not be rejected when α=0.05 and should be rejected when α=0.10.
+If using p-value which is equal to 0.08229, if 0.05<p-value<0.10, the result will be the same.
+####(b)
+```{r, echo=TRUE}
+library(ellipse)
+plot(ellipse(line_2a, c(4,5),level=0.95),type="l")
+points(line_2a$coef[4],line_2a$coef[5])
+points(0, 0, pch=3)
+```
+Considering that dot 0 is inside the confidence region, the null hypothesis failed to be rejected.
+####(c)
+```{r, echo=TRUE}
+x <- data.frame(lcavol=1.44692,lweight=3.62301,age=65,lbph=0.3001,svi=0,lcp=-0.79851,
+ gleason=7,pgg45=15)
+predict(line_2a,x)
+predict(line_2a,x,level=0.95,interval="confidence")
+predict(line_2a,x,level=0.95,interval="predict")
+```
+####(3)
+####(a)
+When R2→0, F is equal to 0; when R2→1, F is infinity.
+####(b)
